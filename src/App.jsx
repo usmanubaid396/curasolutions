@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import * as THREE from 'three';
 import { 
   ArrowRight, 
   ShieldCheck, 
@@ -11,19 +12,15 @@ import {
   Users, 
   Award, 
   ChevronRight, 
-  Play, 
   Lock, 
   Clock, 
-  Activity, 
   Sliders, 
   Menu, 
-  X,
-  Building2,
-  Phone,
-  Mail,
-  MapPin,
-  ExternalLink,
-  Info
+  X, 
+  Mail, 
+  MapPin, 
+  ExternalLink, 
+  Info 
 } from 'lucide-react';
 
 const FontAndStyleLoader = () => (
@@ -34,7 +31,6 @@ const FontAndStyleLoader = () => (
       href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Inter:wght@200;300;400;500;600;700&display=swap" 
       rel="stylesheet" 
     />
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>{`
       :root {
         --color-primary: #0A0A0A;
@@ -51,7 +47,6 @@ const FontAndStyleLoader = () => (
         color: var(--color-primary);
         font-family: 'Inter', sans-serif;
         overflow-x: hidden;
-        cursor: none;
       }
 
       .font-serif-heading {
@@ -98,12 +93,6 @@ const FontAndStyleLoader = () => (
         animation: heartbeat 2s infinite ease-in-out;
       }
 
-      /* Medical crosshair loader */
-      @keyframes crosshairSpin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-      }
-
       /* Extruded text shadow */
       .text-extruded {
         text-shadow: 
@@ -111,11 +100,6 @@ const FontAndStyleLoader = () => (
           0px 2px 0px #9A7E56,
           0px 3px 0px #826843,
           0px 4px 8px rgba(0,0,0,0.3);
-      }
-
-      /* Hide native cursor */
-      * {
-        cursor: none !important;
       }
     `}</style>
   </React.Fragment>
@@ -167,11 +151,11 @@ const CustomCursor = () => {
     <React.Fragment>
       <div 
         ref={dotRef}
-        className="fixed top-0 left-0 w-2 h-2 bg-[#0A0A0A] rounded-full pointer-events-none z-[9999] -mt-1 -ml-1 transition-transform duration-75 ease-out"
+        className="hidden md:block fixed top-0 left-0 w-2 h-2 bg-[#0A0A0A] rounded-full pointer-events-none z-[9999] -mt-1 -ml-1 transition-transform duration-75 ease-out"
       />
       <div 
         ref={ringRef}
-        className={`fixed top-0 left-0 border border-[#C4A77D] rounded-full pointer-events-none z-[9998] -mt-4 -ml-4 transition-all duration-300 ease-out ${
+        className={`hidden md:block fixed top-0 left-0 border border-[#C4A77D] rounded-full pointer-events-none z-[9998] -mt-4 -ml-4 transition-all duration-300 ease-out ${
           isHovered ? 'w-12 h-12 -mt-6 -ml-6 bg-[#C4A77D]/10 border-2 border-[#C4A77D]' : 'w-8 h-8'
         }`}
       />
@@ -195,12 +179,12 @@ const LoadingScreen = ({ onFinished }) => {
       setProgress((prev) => {
         if (prev >= 100) {
           clearInterval(timer);
-          setTimeout(onFinished, 500);
+          setTimeout(onFinished, 400);
           return 100;
         }
         return prev + 2;
       });
-    }, 30);
+    }, 25);
 
     const statusTimer = setInterval(() => {
       setStatusIndex((prev) => (prev + 1) % statuses.length);
@@ -215,7 +199,6 @@ const LoadingScreen = ({ onFinished }) => {
   return (
     <div className="fixed inset-0 bg-[#0A0A0A] z-[10000] flex flex-col items-center justify-center text-[#F5F5F0]">
       <div className="relative mb-8 w-24 h-24 flex items-center justify-center">
-        {/* Medical Crosshair SVG */}
         <div className="absolute inset-0 border border-[#C4A77D]/30 rounded-full animate-ping opacity-25" />
         <svg className="w-16 h-16 text-[#C4A77D] animate-spin" style={{ animationDuration: '8s' }} viewBox="0 0 100 100">
           <circle cx="50" cy="50" r="45" fill="none" stroke="currentColor" strokeWidth="1" strokeDasharray="6 4" />
@@ -243,11 +226,11 @@ const HeroCanvas = ({ scrollY }) => {
   const mountRef = useRef(null);
 
   useEffect(() => {
-    if (typeof window === 'undefined' || !window.THREE) return;
-    const THREE = window.THREE;
+    const currentMount = mountRef.current;
+    if (!currentMount) return;
 
-    const width = mountRef.current.clientWidth;
-    const height = mountRef.current.clientHeight;
+    const width = currentMount.clientWidth || window.innerWidth;
+    const height = currentMount.clientHeight || window.innerHeight;
 
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(60, width / height, 0.1, 1000);
@@ -256,9 +239,8 @@ const HeroCanvas = ({ scrollY }) => {
     const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
     renderer.setSize(width, height);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    mountRef.current.appendChild(renderer.domElement);
+    currentMount.appendChild(renderer.domElement);
 
-    // Create 3,500 particles representing skin cells/collagen fibers
     const count = 3500;
     const geometry = new THREE.BufferGeometry();
     const positions = new Float32Array(count * 3);
@@ -293,7 +275,6 @@ const HeroCanvas = ({ scrollY }) => {
     geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
     geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
 
-    // Circle texture
     const canvas = document.createElement('canvas');
     canvas.width = 32;
     canvas.height = 32;
@@ -322,7 +303,6 @@ const HeroCanvas = ({ scrollY }) => {
     const particles = new THREE.Points(geometry, material);
     scene.add(particles);
 
-    // Mouse interaction
     let mouseX = 0;
     let mouseY = 0;
     const onMouseMove = (e) => {
@@ -332,26 +312,21 @@ const HeroCanvas = ({ scrollY }) => {
     window.addEventListener('mousemove', onMouseMove);
 
     let animationId;
-    let clock = new THREE.Clock();
+    const clock = new THREE.Clock();
 
     const animate = () => {
       animationId = requestAnimationFrame(animate);
       const elapsedTime = clock.getElapsedTime();
-
       const pos = particles.geometry.attributes.position.array;
-
-      // Compression factor on scroll - flattens into horizontal surgical drape plane
-      const scrollFactor = Math.min(scrollY / 600, 1);
+      const scrollFactor = Math.min((window.scrollY || scrollY) / 600, 1);
 
       for (let i = 0; i < count; i++) {
         const i3 = i * 3;
-        // Gentle organic drift
         pos[i3 + 1] = (originalY[i] * (1 - scrollFactor * 0.9)) + Math.sin(elapsedTime * 0.5 + pos[i3]) * 0.5;
         pos[i3] += Math.cos(elapsedTime * 0.3 + pos[i3 + 1]) * 0.01;
       }
 
       particles.geometry.attributes.position.needsUpdate = true;
-
       particles.rotation.y = elapsedTime * 0.03 + mouseX * 0.05;
       particles.rotation.x = mouseY * 0.05;
 
@@ -361,9 +336,9 @@ const HeroCanvas = ({ scrollY }) => {
     animate();
 
     const handleResize = () => {
-      if (!mountRef.current) return;
-      const w = mountRef.current.clientWidth;
-      const h = mountRef.current.clientHeight;
+      if (!currentMount) return;
+      const w = currentMount.clientWidth;
+      const h = currentMount.clientHeight;
       camera.aspect = w / h;
       camera.updateProjectionMatrix();
       renderer.setSize(w, h);
@@ -375,24 +350,27 @@ const HeroCanvas = ({ scrollY }) => {
       cancelAnimationFrame(animationId);
       window.removeEventListener('mousemove', onMouseMove);
       window.removeEventListener('resize', handleResize);
-      if (mountRef.current && renderer.domElement) {
-        mountRef.current.removeChild(renderer.domElement);
+      if (currentMount && renderer.domElement) {
+        currentMount.removeChild(renderer.domElement);
       }
+      geometry.dispose();
+      material.dispose();
+      renderer.dispose();
     };
   }, []);
 
-  return <div ref={mountRef} className="absolute inset-0 z-0 pointer-events-none" />;
+  return <div ref={mountRef} className="absolute inset-0 z-0 pointer-events-none w-full h-full" />;
 };
 
 const ManifestoCanvas = () => {
   const mountRef = useRef(null);
 
   useEffect(() => {
-    if (typeof window === 'undefined' || !window.THREE) return;
-    const THREE = window.THREE;
+    const currentMount = mountRef.current;
+    if (!currentMount) return;
 
-    const width = mountRef.current.clientWidth;
-    const height = mountRef.current.clientHeight;
+    const width = currentMount.clientWidth;
+    const height = currentMount.clientHeight;
 
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(50, width / height, 0.1, 1000);
@@ -401,9 +379,8 @@ const ManifestoCanvas = () => {
     const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
     renderer.setSize(width, height);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    mountRef.current.appendChild(renderer.domElement);
+    currentMount.appendChild(renderer.domElement);
 
-    // Matte ceramic material - Ivory/Gold aesthetic
     const material = new THREE.MeshPhongMaterial({
       color: 0xF5F5F0,
       emissive: 0x1A1815,
@@ -412,9 +389,7 @@ const ManifestoCanvas = () => {
       flatShading: false,
     });
 
-    // Create organic facial contour / smooth shape
     const geometry = new THREE.IcosahedronGeometry(4, 5);
-    // Deform vertices for continuous organic surface
     const pos = geometry.attributes.position;
     for (let i = 0; i < pos.count; i++) {
       const u = pos.getX(i);
@@ -428,7 +403,6 @@ const ManifestoCanvas = () => {
     const mesh = new THREE.Mesh(geometry, material);
     scene.add(mesh);
 
-    // Surgical illumination lights
     const light1 = new THREE.DirectionalLight(0xFFFFFF, 1.2);
     light1.position.set(10, 15, 10);
     scene.add(light1);
@@ -441,7 +415,7 @@ const ManifestoCanvas = () => {
     scene.add(ambientLight);
 
     let animationId;
-    let clock = new THREE.Clock();
+    const clock = new THREE.Clock();
 
     const animate = () => {
       animationId = requestAnimationFrame(animate);
@@ -456,9 +430,9 @@ const ManifestoCanvas = () => {
     animate();
 
     const handleResize = () => {
-      if (!mountRef.current) return;
-      const w = mountRef.current.clientWidth;
-      const h = mountRef.current.clientHeight;
+      if (!currentMount) return;
+      const w = currentMount.clientWidth;
+      const h = currentMount.clientHeight;
       camera.aspect = w / h;
       camera.updateProjectionMatrix();
       renderer.setSize(w, h);
@@ -469,9 +443,12 @@ const ManifestoCanvas = () => {
     return () => {
       cancelAnimationFrame(animationId);
       window.removeEventListener('resize', handleResize);
-      if (mountRef.current && renderer.domElement) {
-        mountRef.current.removeChild(renderer.domElement);
+      if (currentMount && renderer.domElement) {
+        currentMount.removeChild(renderer.domElement);
       }
+      geometry.dispose();
+      material.dispose();
+      renderer.dispose();
     };
   }, []);
 
@@ -499,7 +476,6 @@ const Navigation = ({ visible, activeSection, onNavigate }) => {
     >
       <div className="max-w-7xl mx-auto px-6 py-4">
         <div className="glass-panel rounded-full px-6 py-3 flex items-center justify-between shadow-lg border border-[#C4A77D]/20">
-          {/* Logo */}
           <button 
             onClick={() => onNavigate('hero')}
             className="flex items-center gap-2 text-left group"
@@ -517,7 +493,6 @@ const Navigation = ({ visible, activeSection, onNavigate }) => {
             </div>
           </button>
 
-          {/* Desktop Links */}
           <nav className="hidden md:flex items-center gap-8">
             {navItems.slice(1).map((item) => (
               <button
@@ -535,7 +510,6 @@ const Navigation = ({ visible, activeSection, onNavigate }) => {
             ))}
           </nav>
 
-          {/* CTA */}
           <div className="hidden md:block">
             <button 
               onClick={() => onNavigate('contact')}
@@ -546,7 +520,6 @@ const Navigation = ({ visible, activeSection, onNavigate }) => {
             </button>
           </div>
 
-          {/* Mobile Menu Toggle */}
           <button 
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             className="md:hidden p-2 text-[#0A0A0A]"
@@ -556,9 +529,8 @@ const Navigation = ({ visible, activeSection, onNavigate }) => {
         </div>
       </div>
 
-      {/* Mobile Drawer */}
       {mobileMenuOpen && (
-        <div className="md:hidden fixed inset-x-4 top-20 glass-dark rounded-2xl p-6 shadow-2xl border border-[#C4A77D]/30 z-50 flex flex-col gap-4 animate-in fade-in slide-in-from-top-4">
+        <div className="md:hidden fixed inset-x-4 top-20 glass-dark rounded-2xl p-6 shadow-2xl border border-[#C4A77D]/30 z-50 flex flex-col gap-4">
           {navItems.map((item) => (
             <button
               key={item.id}
@@ -592,18 +564,16 @@ const HeroSection = ({ onNavigate }) => {
 
   return (
     <section id="hero" className="relative w-full min-h-screen flex items-center justify-center px-6 pt-20 pb-16 overflow-hidden">
-      <HeroCanvas scrollY={typeof window !== 'undefined' ? window.scrollY : 0} />
+      <HeroCanvas scrollY={0} />
 
       <div className="relative z-10 max-w-5xl mx-auto text-center flex flex-col items-center">
-        {/* Eyebrow */}
-        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full glass-panel border border-[#C4A77D]/30 mb-8 animate-fade-in">
+        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full glass-panel border border-[#C4A77D]/30 mb-8">
           <span className="w-2 h-2 rounded-full bg-[#C4A77D] animate-ping" />
           <span className="font-mono text-xs tracking-widest uppercase text-[#0A0A0A] font-medium">
             Medical Aesthetics Content Agency
           </span>
         </div>
 
-        {/* Headline with 3D depth effect on hover */}
         <h1 
           onMouseEnter={() => setHoverDepth(true)}
           onMouseLeave={() => setHoverDepth(false)}
@@ -615,12 +585,10 @@ const HeroSection = ({ onNavigate }) => {
           <span className="italic font-serif-heading text-[#C4A77D] font-normal">consultation rooms.</span>
         </h1>
 
-        {/* Subheadline */}
         <p className="max-w-2xl text-lg md:text-xl text-[#8A8A8A] font-light leading-relaxed mb-10">
           Production, post-production, and patient acquisition strategy — built exclusively for aesthetic clinics, plastic surgeons, dermatologists, and medspas.
         </p>
 
-        {/* CTAs */}
         <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
           <button 
             onClick={() => onNavigate('work')}
@@ -638,7 +606,6 @@ const HeroSection = ({ onNavigate }) => {
           </button>
         </div>
 
-        {/* Medical precision metrics strip */}
         <div className="mt-16 grid grid-cols-2 md:grid-cols-4 gap-6 w-full max-w-4xl border-t border-[#E5E5DF] pt-8">
           <div>
             <div className="font-serif-heading text-3xl font-normal text-[#0A0A0A]">340%</div>
@@ -684,8 +651,6 @@ const ManifestoSection = () => {
     <section id="difference" className="w-full py-28 px-6 bg-[#F5F5F0] border-t border-[#E5E5DF]">
       <div className="max-w-7xl mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
-          
-          {/* Left Column (Sticky Manifesto) */}
           <div className="lg:col-span-5 lg:sticky lg:top-28">
             <span className="font-mono text-xs uppercase tracking-widest text-[#C4A77D] block mb-3">
               02 / The Difference
@@ -697,7 +662,6 @@ const ManifestoSection = () => {
               Medical aesthetics requires surgical precision in storytelling. We eliminate the gap between marketing creativity and medical ethics.
             </p>
 
-            {/* Pillar Selector Buttons */}
             <div className="space-y-3">
               {pillars.map((pillar, idx) => (
                 <button
@@ -718,7 +682,6 @@ const ManifestoSection = () => {
             </div>
           </div>
 
-          {/* Right Column (Visual Narrative & 3D Interactive Display) */}
           <div className="lg:col-span-7 flex flex-col gap-6">
             <ManifestoCanvas />
 
@@ -733,7 +696,6 @@ const ManifestoSection = () => {
                 {pillars[activeTab].desc}
               </p>
 
-              {/* Compliance checklist */}
               <div className="mt-6 pt-6 border-t border-[#E5E5DF] grid grid-cols-2 gap-4 font-mono text-xs text-[#0A0A0A]">
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="w-4 h-4 text-[#C4A77D]" />
@@ -754,7 +716,6 @@ const ManifestoSection = () => {
               </div>
             </div>
           </div>
-
         </div>
       </div>
     </section>
@@ -809,7 +770,6 @@ const ServicesSection = () => {
           </p>
         </div>
 
-        {/* Stacked Bands */}
         <div className="space-y-6">
           {services.map((service, index) => {
             const Icon = service.icon;
@@ -826,8 +786,6 @@ const ServicesSection = () => {
                 }`}
               >
                 <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-                  
-                  {/* Left Title Block */}
                   <div className="flex items-start gap-6">
                     <span className="font-serif-heading text-3xl md:text-4xl text-[#C4A77D] font-light">
                       {service.id}
@@ -845,15 +803,13 @@ const ServicesSection = () => {
                     </div>
                   </div>
 
-                  {/* Right Description & Details */}
                   <div className="lg:max-w-xl">
                     <p className="text-[#A0A0A0] font-light text-sm leading-relaxed mb-4">
                       {service.description}
                     </p>
 
-                    {/* Deliverables List (expanded when active) */}
                     {isActive && (
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-4 border-t border-[#333] animate-in fade-in">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-4 border-t border-[#333]">
                         {service.deliverables.map((item, i) => (
                           <div key={i} className="flex items-center gap-2 font-mono text-[11px] text-[#C4A77D]">
                             <Sparkles className="w-3 h-3 text-[#C4A77D]" />
@@ -864,7 +820,6 @@ const ServicesSection = () => {
                     )}
                   </div>
 
-                  {/* Toggle Indicator */}
                   <div className="self-end lg:self-center">
                     <div className={`w-10 h-10 rounded-full border border-[#C4A77D]/30 flex items-center justify-center transition-transform ${
                       isActive ? 'bg-[#C4A77D] text-[#0A0A0A] rotate-90' : 'text-[#C4A77D] group-hover:bg-[#C4A77D]/10'
@@ -872,7 +827,6 @@ const ServicesSection = () => {
                       <ChevronRight className="w-5 h-5" />
                     </div>
                   </div>
-
                 </div>
               </div>
             );
@@ -951,11 +905,10 @@ const WorkSection = () => {
             </h2>
           </div>
           <p className="text-[#8A8A8A] font-light max-w-md mt-4 md:mt-0 text-sm">
-            Hover over cards to peel back clinical metrics. Click to inspect full case study logs.
+            Peel back clinical metrics. Click to inspect full case study logs.
           </p>
         </div>
 
-        {/* Gallery Wall Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {cases.map((item) => (
             <div
@@ -963,7 +916,6 @@ const WorkSection = () => {
               onClick={() => setSelectedCase(item)}
               className="group relative glass-panel rounded-2xl p-8 border border-[#E5E5DF] hover:border-[#C4A77D] transition-all duration-500 hover:-translate-y-2 hover:shadow-xl cursor-pointer overflow-hidden"
             >
-              {/* Medical Chart Peel Header Tag */}
               <div className="flex items-center justify-between mb-6 pb-4 border-b border-[#E5E5DF]">
                 <div>
                   <h3 className="font-serif-heading text-2xl font-normal text-[#0A0A0A]">
@@ -978,7 +930,6 @@ const WorkSection = () => {
                 </div>
               </div>
 
-              {/* Big Metric Display */}
               <div className="my-6">
                 <div className="font-serif-heading text-5xl font-normal text-[#0A0A0A] text-extruded">
                   {item.metric}
@@ -992,16 +943,14 @@ const WorkSection = () => {
                 {item.summary}
               </p>
 
-              {/* Chart Peel Corner Effect */}
               <div className="absolute top-0 right-0 w-12 h-12 bg-gradient-to-bl from-[#C4A77D]/20 to-transparent rounded-bl-2xl transition-transform group-hover:scale-125" />
             </div>
           ))}
         </div>
       </div>
 
-      {/* Case Study Detail Modal */}
       {selectedCase && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-[#0A0A0A]/80 backdrop-blur-md animate-in fade-in">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-[#0A0A0A]/80 backdrop-blur-md">
           <div className="glass-panel max-w-2xl w-full rounded-2xl p-8 border border-[#C4A77D] relative max-h-[90vh] overflow-y-auto">
             <button 
               onClick={() => setSelectedCase(null)}
@@ -1110,12 +1059,9 @@ const ProcessSection = () => {
           </p>
         </div>
 
-        {/* Vertical Liquid Conduit Timeline */}
         <div className="relative">
-          {/* Conduit Line */}
           <div className="absolute left-6 top-0 bottom-0 w-[2px] bg-[#222] md:left-1/2 md:-ml-[1px]" />
           
-          {/* Animated Liquid Fill Tube */}
           <div 
             className="absolute left-6 top-0 w-[2px] bg-gradient-to-b from-[#C4A77D] to-[#E6C896] md:left-1/2 md:-ml-[1px] transition-all duration-500 ease-out"
             style={{ height: `${(activeStep / steps.length) * 100}%` }}
@@ -1134,7 +1080,6 @@ const ProcessSection = () => {
                     idx % 2 === 0 ? 'md:flex-row-reverse' : ''
                   }`}
                 >
-                  {/* Step Node Icon */}
                   <div className="absolute left-6 -translate-x-1/2 md:left-1/2 top-0 z-10 w-12 h-12 rounded-full border-2 bg-[#0A0A0A] flex items-center justify-center font-mono text-xs transition-all duration-300 shadow-xl"
                     style={{
                       borderColor: isActive ? '#C4A77D' : '#333',
@@ -1144,7 +1089,6 @@ const ProcessSection = () => {
                     {step.num}
                   </div>
 
-                  {/* Content Box */}
                   <div className="ml-16 md:ml-0 md:w-1/2 md:px-12">
                     <div className={`p-6 rounded-2xl transition-all duration-300 border ${
                       activeStep === stepNum 
@@ -1222,7 +1166,6 @@ const TrustSection = () => {
           </p>
         </div>
 
-        {/* Glass Tile Masonry Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {trustSignals.map((item, idx) => {
             const Icon = item.icon;
@@ -1268,15 +1211,12 @@ const ContactSection = () => {
 
   return (
     <section id="contact" className="relative w-full py-28 px-6 bg-[#0A0A0A] text-[#F5F5F0] overflow-hidden">
-      {/* 60BPM Ambient Heartbeat Pulse */}
       <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
         <div className="w-[800px] h-[800px] rounded-full border border-[#C4A77D] ambient-pulse pointer-events-none" />
       </div>
 
       <div className="relative z-10 max-w-7xl mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-          
-          {/* Left Column Text */}
           <div className="lg:col-span-5">
             <span className="font-mono text-xs uppercase tracking-widest text-[#C4A77D] block mb-3">
               07 / Start A Project
@@ -1304,7 +1244,6 @@ const ContactSection = () => {
             </div>
           </div>
 
-          {/* Right Form */}
           <div className="lg:col-span-7">
             <div className="glass-dark rounded-3xl p-8 md:p-10 border border-[#C4A77D]/30 shadow-2xl">
               {submitted ? (
@@ -1407,7 +1346,6 @@ const ContactSection = () => {
                     />
                   </div>
 
-                  {/* Interactive Syringe Plunger Button */}
                   <button 
                     type="submit"
                     className="w-full bg-[#C4A77D] hover:bg-[#E6C896] text-[#0A0A0A] font-mono text-xs font-bold tracking-widest uppercase py-4 rounded-xl transition-all duration-300 flex items-center justify-center gap-3 shadow-lg group active:scale-[0.99]"
@@ -1419,7 +1357,6 @@ const ContactSection = () => {
               )}
             </div>
           </div>
-
         </div>
       </div>
     </section>
@@ -1430,8 +1367,6 @@ const Footer = () => {
   return (
     <footer className="w-full bg-[#0A0A0A] text-[#F5F5F0] border-t border-[#222] py-16 px-6">
       <div className="max-w-7xl mx-auto">
-        
-        {/* Row 1: Extruded Brand & Contact Locations */}
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-8 pb-12 border-b border-[#222]">
           <div>
             <h3 className="font-serif-heading text-4xl md:text-5xl font-bold tracking-wider text-extruded text-[#F5F5F0]">
@@ -1458,7 +1393,6 @@ const Footer = () => {
           </div>
         </div>
 
-        {/* Row 2: Legal & Social Links */}
         <div className="pt-8 flex flex-col md:flex-row items-center justify-between gap-4 font-mono text-xs text-[#666]">
           <p>© 2026 CURA CLINICAL CONTENT AGENCY. ALL RIGHTS RESERVED.</p>
           <div className="flex items-center gap-6">
@@ -1467,7 +1401,6 @@ const Footer = () => {
             <a href="#hero" className="hover:text-[#C4A77D] transition-colors">HIPAA PRIVACY STATEMENT</a>
           </div>
         </div>
-
       </div>
     </footer>
   );
@@ -1483,7 +1416,6 @@ export default function App() {
       const currentY = window.scrollY;
       setScrollY(currentY);
 
-      // Simple section detection
       const sections = ['hero', 'difference', 'services', 'work', 'process', 'trust', 'contact'];
       for (const section of sections) {
         const el = document.getElementById(section);
