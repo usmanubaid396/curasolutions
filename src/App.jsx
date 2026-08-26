@@ -1367,6 +1367,8 @@ const Footer = () => {
   return (
     <footer className="w-full bg-[#0A0A0A] text-[#F5F5F0] border-t border-[#222] py-16 px-6">
       <div className="max-w-7xl mx-auto">
+        
+        {/* Row 1: Extruded Brand & Contact Locations */}
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-8 pb-12 border-b border-[#222]">
           <div>
             <h3 className="font-serif-heading text-4xl md:text-5xl font-bold tracking-wider text-extruded text-[#F5F5F0]">
@@ -1393,19 +1395,35 @@ const Footer = () => {
           </div>
         </div>
 
+        {/* Row 2: Developer Credit, Copyright & Social Links */}
         <div className="pt-8 flex flex-col md:flex-row items-center justify-between gap-4 font-mono text-xs text-[#666]">
-          <p>© 2026 CURA CLINICAL CONTENT AGENCY. ALL RIGHTS RESERVED.</p>
+          <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4">
+            <p>© 2026 CURA CLINICAL CONTENT AGENCY. ALL RIGHTS RESERVED.</p>
+            <span className="hidden sm:inline text-[#333]">•</span>
+            <p className="text-[#8A8A8A]">
+              Engineered by{' '}
+              <a
+                href="https://usmanubaid.vercel.app"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[#C4A77D] hover:text-[#F5F5F0] transition-colors underline decoration-[#C4A77D]/40 underline-offset-4"
+              >
+                Usman Ubaid
+              </a>
+            </p>
+          </div>
+
           <div className="flex items-center gap-6">
             <a href="#hero" className="hover:text-[#C4A77D] transition-colors">LINKEDIN</a>
             <a href="#hero" className="hover:text-[#C4A77D] transition-colors">INSTAGRAM</a>
             <a href="#hero" className="hover:text-[#C4A77D] transition-colors">HIPAA PRIVACY STATEMENT</a>
           </div>
         </div>
+
       </div>
     </footer>
   );
 };
-
 export default function App() {
   const [loading, setLoading] = useState(true);
   const [scrollY, setScrollY] = useState(0);
